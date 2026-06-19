@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>XtAC Trades — Institutional AI Trading Intelligence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-deep: #0B1220;
+    --bg-card: #111827;
+    --bg-card2: #151f32;
+    --emerald: #10B981;
+    --emerald-dim: #0d9268;
+    --blue: #3B82F6;
+    --blue-dim: #2563eb;
+    --white: #F8FAFC;
+    --muted: #94A3B8;
+    --red: #EF4444;
+    --amber: #F59E0B;
+    --border: rgba(255,255,255,0.07);
+    --glow-green: 0 0 20px rgba(16,185,129,0.25);
+    --glow-blue: 0 0 20px rgba(59,130,246,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--emerald); border-radius: 4px; }
+
+  /* ── CANVAS ── */
+  #bg-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 48px;
+    background: rgba(11,18,32,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px; font-weight: 700;
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+
+  .btn {
+    padding: 9px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--emerald), #059669);
+    color: #fff;
+    box-shadow: var(--glow-green);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(16,185,129,0.4); }
+  .btn-blue {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dim));
+    color: #fff;
+    box-shadow: var(--glow-blue);
+  }
+  .btn-blue:hover { transform: translateY(-1px); }
+  .btn-lg { padding: 14px 28px; font-size: 15px; border-radius: 10px; }
+
+  /* ── SECTIONS ── */
+  section { position: relative; z-index: 1; }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--emerald);
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.2);
+    padding: 6px 14px; border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700; line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  .grad-text {
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.25);
+    padding: 7px 16px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--emerald);
+    margin-bottom: 32px;
+  }
+
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--emerald);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 700; line-height: 1.05;
+    letter-spacing: -2px;
+    max-width: 900px;
+    margin-bottom: 24px;
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 18px);
+    color: var(--muted); max-width: 600px;
+    line-height: 1.7; margin-bottom: 44px;
+  }
+
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 60px; }
+
+  /* Ticker */
+  .ticker-wrap {
+    width: 100%; overflow: hidden;
+    background: rgba(17,24,39,0.8);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 0;
+    max-width: 1000px;
+  }
+
+  .ticker-inner {
+    display: flex; gap: 48px;
+    animation: ticker 25s linear infinite;
+    white-space: nowrap;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .ticker-sym { color: var(--white); font-weight: 600; }
+  .ticker-price { color: var(--muted); }
+  .ticker-up { color: var(--emerald); }
+  .ticker-down { color: var(--red); }
+
+  /* Stats */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-top: 60px; max-width: 900px; width: 100%;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    text-align: left;
+  }
+
+  .stat-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px; font-weight: 700; color: var(--emerald);
+  }
+
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── TICKER BAR (top) ── */
+  .live-bar {
+    background: rgba(16,185,129,0.06);
+    border-bottom: 1px solid rgba(16,185,129,0.12);
+    padding: 10px 0; overflow: hidden;
+    position: relative; z-index: 99; margin-top: 64px;
+  }
+
+  /* ── MODULES GRID ── */
+  .modules {
+    padding: 100px 48px;
+    max-width: 1300px; margin: 0 auto;
+  }
+
+  .modules-header { text-align: center; margin-bottom: 60px; }
+
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .mod-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mod-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  .mod-card:hover { border-color: rgba(16,185,129,0.3); transform: translateY(-4px); box-shadow: var(--glow-green); }
+  .mod-card:hover::before { opacity: 1; }
+
+  .mod-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 18px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .mod-card.blue .mod-icon { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2); }
+
+  .mod-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+  .mod-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+  .mod-badge {
+    display: inline-block; margin-top: 16px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--emerald);
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);
+    padding: 4px 10px; border-radius: 6px;
+  }
+  .mod-card.blue .mod-badge { color: var(--blue); background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2); }
+
+  /* ── ANALYZER ── */
+  #analyzer {
+    padding: 100px 48px;
+    background: linear-gradient(180deg, transparent, rgba(16,185,129,0.03), transparent);
+  }
+
+  .analyzer-inner {
+    max-width: 1300px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
+  }
+
+  .analyzer-left h2 { margin-bottom: 16px; }
+  .analyzer-left p { color: var(--muted); line-height: 1.7; margin-bottom: 32px; }
+
+  .analyzer-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px;
+  }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .panel-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
+  .panel-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--emerald);
+    background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 6px;
+  }
+
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; letter-spacing: 0.5px; }
+
+  .inp {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; color: var(--white);
+    font-family: 'Inter', sans-serif; font-size: 14px;
+    transition: border-color 0.2s;
+  }
+  .inp:focus { outline: none; border-color: var(--emerald); background: rgba(16,185,129,0.04); }
+  .inp::placeholder { color: rgba(148,163,184,0.5); }
+
+  select.inp { cursor: pointer; }
+
+  .tab-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+  .tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+  /* ── AI OUTPUT ── */
+  .ai-output {
+    background: rgba(11,18,32,0.8);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    margin-top: 20px; display: none;
+  }
+
+  .ai-output.visible { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .out-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .out-row:last-child { border-bottom: none; }
+  .out-key { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .out-val { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .bull { color: var(--emerald); }
+  .bear { color: var(--red); }
+  .neut { color: var(--amber); }
+
+  .confidence-bar {
+    height: 6px; background: var(--border);
+    border-radius: 3px; margin-top: 12px; overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    transition: width 1s ease;
+  }
+
+  /* ── SIGNALS ── */
+  #signals { padding: 100px 48px; }
+  .signals-inner { max-width: 1300px; margin: 0 auto; }
+  .signals-header { text-align: center; margin-bottom: 60px; }
+
+  .signals-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .signal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    transition: all 0.3s;
+  }
+
+  .signal-card:hover { transform: translateY(-3px); box-shadow: var(--glow-green); }
+
+  .signal-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .signal-pair { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; }
+  .signal-type {
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .sig-buy { background: rgba(16,185,129,0.15); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); }
+  .sig-sell { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+  .sig-hold { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+
+  .signal-levels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .level-box { text-align: center; }
+  .level-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .level-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; margin-top: 4px; }
+
+  .signal-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border); }
+  .conf-wrap { display: flex; align-items: center; gap: 8px; }
+  .conf-label { font-size: 11px; color: var(--muted); }
+  .conf-val { font-size: 13px; font-weight: 700; }
+  .time-ago { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── PORTFOLIO ── */
+  #portfolio { padding: 100px 48px; background: linear-gradient(180deg, transparent, rgba(59,130,246,0.03), transparent); }
+  .portfolio-inner { max-width: 1300px; margin: 0 auto; }
+  .portfolio-header { text-align: center; margin-bottom: 60px; }
+
+  .portfolio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .port-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+  }
+
+  .port-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+  .port-val { font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700; }
+  .port-change { font-size: 14px; margin-top: 6px; }
+
+  .alloc-bars { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .alloc-row { display: flex; align-items: center; gap: 12px; }
+  .alloc-name { font-size: 13px; width: 80px; }
+  .alloc-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .alloc-bar-fill { height: 100%; border-radius: 3px; }
+  .alloc-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; width: 36px; text-align: right; color: var(--muted); }
+
+  .ai-reco {
+    background: rgba(16,185,129,0.05);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: 12px; padding: 16px; margin-top: 16px;
+  }
+  .ai-reco-title { font-size: 12px; color: var(--emerald); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .ai-reco-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* ── NEWS ── */
+  #news { padding: 100px 48px; }
+  .news-inner { max-width: 1300px; margin: 0 auto; }
+  .news-header { text-align: center; margin-bottom: 60px; }
+
+  .news-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+  .news-feed { display: flex; flex-direction: column; gap: 16px; }
+
+  .news-item {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; display: flex; gap: 16px; align-items: flex-start;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .news-item:hover { border-color: rgba(59,130,246,0.3); transform: translateX(4px); }
+
+  .news-impact {
+    width: 8px; min-width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;
+  }
+  .impact-high { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+  .impact-med { background: var(--amber); }
+  .impact-low { background: var(--emerald); }
+
+  .news-body { flex: 1; }
+  .news-source { font-size: 11px; color: var(--blue); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .news-title-text { font-size: 14px; font-weight: 600; margin: 5px 0; line-height: 1.4; }
+  .news-meta-row { display: flex; gap: 12px; align-items: center; }
+  .news-time { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .news-sentiment {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+  }
+  .sent-pos { color: var(--emerald); background: rgba(16,185,129,0.1); }
+  .sent-neg { color: var(--red); background: rgba(239,68,68,0.1); }
+  .sent-neu { color: var(--amber); background: rgba(245,158,11,0.1); }
+
+  .econ-cal {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+  }
+
+  .cal-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 18px; }
+
+  .cal-item {
+    display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .cal-item:last-child { border-bottom: none; }
+  .cal-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); min-width: 44px; }
+  .cal-info { flex: 1; }
+  .cal-event { font-size: 13px; font-weight: 500; }
+  .cal-country { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .cal-impact { font-size: 10px; }
+
+  /* ── PRICING ── */
+  #pricing { padding: 100px 48px; background: linear-gradient(180deg, transparent, rgba(16,185,129,0.03), transparent); }
+  .pricing-inner { max-width: 1100px; margin: 0 auto; }
+  .pricing-header { text-align: center; margin-bottom: 60px; }
+
+  .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+  .plan-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 28px; position: relative;
+    transition: all 0.3s;
+  }
+
+  .plan-card.featured {
+    border-color: var(--emerald);
+    box-shadow: var(--glow-green), 0 0 0 1px rgba(16,185,129,0.15);
+  }
+
+  .popular-badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 5px 16px; border-radius: 20px;
+  }
+
+  .plan-name { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .plan-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 44px; font-weight: 700;
+    color: var(--emerald); margin: 16px 0 4px;
+  }
+  .plan-price span { font-size: 16px; color: var(--muted); font-weight: 400; }
+  .plan-desc { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+  .plan-features { list-style: none; margin-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+  .plan-features li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .plan-features li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; }
+  .plan-features li.off { color: var(--muted); }
+  .plan-features li.off::before { content: '—'; color: var(--border); }
+
+  /* ── AUTH MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 24px; padding: 40px 36px; width: 100%; max-width: 420px;
+    position: relative; transform: translateY(20px); transition: transform 0.3s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none; color: var(--muted); font-size: 22px;
+    cursor: pointer; transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--white); }
+
+  .modal-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px; font-weight: 700;
+    background: linear-gradient(90deg, var(--emerald), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; margin-bottom: 8px;
+  }
+
+  .modal-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  .auth-tabs { display: flex; gap: 0; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; margin-bottom: 24px; }
+  .auth-tab {
+    flex: 1; text-align: center; padding: 9px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    cursor: pointer; color: var(--muted); transition: all 0.2s;
+  }
+  .auth-tab.active { background: var(--emerald); color: #fff; }
+
+  .social-btn {
+    width: 100%; padding: 12px; border-radius: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--white); font-size: 14px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 16px; transition: all 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .social-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px; margin: 16px 0;
+    color: var(--muted); font-size: 12px;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── AI CHAT BOT ── */
+  .chat-fab {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--emerald), var(--blue));
+    border: none; cursor: pointer; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+    transition: all 0.2s;
+  }
+  .chat-fab:hover { transform: scale(1.1); box-shadow: 0 12px 32px rgba(16,185,129,0.5); }
+
+  .chat-panel {
+    position: fixed; bottom: 96px; right: 28px;
+    width: 360px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 20px;
+    z-index: 200; overflow: hidden;
+    transform: scale(0.8) translateY(20px); transform-origin: bottom right;
+    opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .chat-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+
+  .chat-header {
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08));
+    display: flex; align-items: center; gap: 12px;
+  }
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--emerald), var(--blue));
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .chat-name { font-weight: 600; font-size: 14px; }
+  .chat-status { font-size: 11px; color: var(--emerald); }
+
+  .chat-messages {
+    height: 280px; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .chat-bubble {
+    max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+  }
+  .chat-bubble.bot {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    align-self: flex-start; border-bottom-left-radius: 4px;
+  }
+  .chat-bubble.user {
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(59,130,246,0.2));
+    border: 1px solid rgba(16,185,129,0.2);
+    align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+
+  .chat-input-row {
+    display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--border);
+  }
+  .chat-input {
+    flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; color: var(--white);
+    font-size: 13px; font-family: 'Inter', sans-serif;
+  }
+  .chat-input:focus { outline: none; border-color: var(--emerald); }
+  .chat-send {
+    background: var(--emerald); border: none; border-radius: 10px;
+    width: 40px; height: 40px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    transition: all 0.2s;
+  }
+  .chat-send:hover { background: var(--emerald-dim); }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 60px 48px 30px;
+    border-top: 1px solid var(--border);
+    max-width: 1300px; margin: 0 auto;
+  }
+
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-logo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; background: linear-gradient(90deg, var(--emerald), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .footer-tagline { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 240px; }
+  .footer-col-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 16px; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; cursor: pointer; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .footer-disclaimer { font-size: 11px; color: rgba(148,163,184,0.5); margin-top: 12px; line-height: 1.5; }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay {
+    position: fixed; inset: 0; background: var(--bg-deep);
+    z-index: 9999; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    transition: opacity 0.5s;
+  }
+  .loading-logo { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; background: linear-gradient(90deg, var(--emerald), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .loading-bar-wrap { width: 200px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .loading-bar-fill { height: 100%; background: linear-gradient(90deg, var(--emerald), var(--blue)); border-radius: 2px; animation: load 1.5s ease forwards; }
+  @keyframes load { from { width: 0; } to { width: 100%; } }
+  .loading-text { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── HEATMAP ── */
+  .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 24px; }
+  .hmap-cell {
+    aspect-ratio: 1; border-radius: 4px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 10px; font-weight: 600;
+    cursor: pointer; transition: transform 0.2s;
+  }
+  .hmap-cell:hover { transform: scale(1.1); z-index: 2; }
+  .hmap-sym { font-size: 9px; font-weight: 700; }
+  .hmap-pct { font-size: 10px; margin-top: 2px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .modules-grid { grid-template-columns: 1fr 1fr; }
+    .analyzer-inner { grid-template-columns: 1fr; }
+    .portfolio-grid { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .plans-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .modules { padding: 60px 20px; }
+    #analyzer, #signals, #portfolio, #news, #pricing { padding: 60px 20px; }
+  }
+
+  @media (max-width: 600px) {
+    .modules-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; }
+    .chat-panel { width: calc(100vw - 40px); right: 20px; }
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--bg-card); border: 1px solid var(--emerald);
+    border-radius: 10px; padding: 12px 20px;
+    font-size: 14px; font-weight: 500;
+    z-index: 999; transition: transform 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loader">
+  <div class="loading-logo">XtAC Trades</div>
+  <div class="loading-bar-wrap"><div class="loading-bar-fill"></div></div>
+  <div class="loading-text">Initializing market intelligence...</div>
+</div>
+
+<!-- BG Particle Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Action completed</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">XtAC Trades</div>
+  <div class="nav-links">
+    <a onclick="scrollTo('modules')">Platform</a>
+    <a onclick="scrollTo('analyzer')">AI Analyst</a>
+    <a onclick="scrollTo('signals')">Signals</a>
+    <a onclick="scrollTo('portfolio')">Portfolio</a>
+    <a onclick="scrollTo('news')">News</a>
+    <a onclick="scrollTo('pricing')">Pricing</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost" onclick="openModal('login')">Log In</button>
+    <button class="btn btn-primary" onclick="openModal('signup')">Get Started</button>
+  </div>
+</nav>
+
+<!-- LIVE BAR -->
+<div class="live-bar" style="margin-top:64px">
+  <div class="ticker-inner" id="top-ticker"></div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-eyebrow">
+    <span class="pulse-dot"></span>
+    Live Market Intelligence — 47 Assets Monitored
+  </div>
+  <h1 class="hero-title">
+    AI-Powered <span class="grad-text">Institutional</span><br/>Market Intelligence
+  </h1>
+  <p class="hero-sub">
+    Transform market data into professional trading decisions using advanced artificial intelligence, quantitative research models, and real-time signal generation.
+  </p>
+  <div class="hero-actions">
+    <button class="btn btn-primary btn-lg" onclick="scrollTo('analyzer')">Start Analysis</button>
+    <button class="btn btn-blue btn-lg" onclick="scrollTo('signals')">View Signals</button>
+    <button class="btn btn-ghost btn-lg" onclick="openModal('signup')">Upgrade to Pro</button>
+  </div>
+
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="hero-ticker"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" id="cnt-signals">0</div>
+      <div class="stat-lbl">Signals Generated Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="cnt-acc">0%</div>
+      <div class="stat-lbl">30-Day Signal Accuracy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="cnt-users">0</div>
+      <div class="stat-lbl">Active Traders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="cnt-assets">47</div>
+      <div class="stat-lbl">Markets Covered</div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section id="modules" class="modules">
+  <div class="modules-header">
+    <div class="section-label">Platform Modules</div>
+    <h2 class="section-title">Everything You Need to<br/><span class="grad-text">Trade Smarter</span></h2>
+  </div>
+  <div class="modules-grid">
+    <div class="mod-card" onclick="scrollTo('analyzer')">
+      <div class="mod-icon">🧠</div>
+      <div class="mod-title">AI Market Analyst</div>
+      <div class="mod-desc">Professional-grade market analysis powered by advanced AI. Full technical breakdown with key levels, trade setups, and confidence scoring for 47+ assets.</div>
+      <div class="mod-badge">Live</div>
+    </div>
+    <div class="mod-card" onclick="scrollTo('signals')">
+      <div class="mod-icon">⚡</div>
+      <div class="mod-title">Signal Engine</div>
+      <div class="mod-desc">Real-time BUY/SELL/HOLD signals with precise entry, stop loss, and take profit levels. Risk-scored and confidence-weighted for every trade setup.</div>
+      <div class="mod-badge">Real-Time</div>
+    </div>
+    <div class="mod-card blue">
+      <div class="mod-icon">🔬</div>
+      <div class="mod-title">Strategy Analyzer</div>
+      <div class="mod-desc">Submit any trading strategy — from TikTok, YouTube, or your own system — for AI-powered backtesting, performance analysis, and optimization.</div>
+      <div class="mod-badge">AI Powered</div>
+    </div>
+    <div class="mod-card blue" onclick="scrollTo('portfolio')">
+      <div class="mod-icon">📊</div>
+      <div class="mod-title">Portfolio Intelligence</div>
+      <div class="mod-desc">Track your portfolio with AI-driven risk analysis, sector allocation insights, correlation matrices, and personalized rebalancing recommendations.</div>
+      <div class="mod-badge">Pro</div>
+    </div>
+    <div class="mod-card" onclick="scrollTo('news')">
+      <div class="mod-icon">📰</div>
+      <div class="mod-title">News Intelligence</div>
+      <div class="mod-desc">Aggregated global financial news with AI sentiment scoring, event impact forecasting, and economic calendar integration for informed decisions.</div>
+      <div class="mod-badge">Live</div>
+    </div>
+    <div class="mod-card blue">
+      <div class="mod-icon">🔐</div>
+      <div class="mod-title">Secure Platform</div>
+      <div class="mod-desc">Bank-grade security with JWT authentication, multi-factor verification, role-based access control, and full audit logging for every session.</div>
+      <div class="mod-badge">Enterprise</div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYZER -->
+<section id="analyzer">
+  <div class="analyzer-inner">
+    <div class="analyzer-left">
+      <div class="section-label">AI Market Analyst</div>
+      <h2 class="section-title">Institutional Analysis<br/><span class="grad-text">On Demand</span></h2>
+      <p>Select any asset and our AI generates a complete institutional-grade analysis report — including market structure, key levels, trade setups, risk-reward, and confidence scoring.</p>
+
+      <!-- Heatmap -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin-bottom:4px;">Market Heatmap</div>
+        <div style="font-size:12px;color:var(--muted);">7-day performance across major assets</div>
+        <div class="heatmap-grid" id="heatmap"></div>
+      </div>
+    </div>
+
+    <div class="analyzer-panel">
+      <div class="panel-header">
+        <div class="panel-title">AI Market Analyst</div>
+        <div class="panel-status">● LIVE</div>
+      </div>
+
+      <div class="tab-row" id="asset-tabs">
+        <button class="tab active" onclick="setTab(this,'Forex')">Forex</button>
+        <button class="tab" onclick="setTab(this,'Crypto')">Crypto</button>
+        <button class="tab" onclick="setTab(this,'Stocks')">Stocks</button>
+        <button class="tab" onclick="setTab(this,'Commodities')">Commodities</button>
+        <button class="tab" onclick="setTab(this,'Indices')">Indices</button>
+      </div>
+
+      <div class="input-group">
+        <label>SELECT ASSET</label>
+        <select class="inp" id="asset-select">
+          <option>EUR/USD</option>
+          <option>GBP/USD</option>
+          <option>USD/JPY</option>
+          <option>AUD/USD</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>TIMEFRAME</label>
+        <select class="inp" id="tf-select">
+          <option>1H — Short Term</option>
+          <option>4H — Mid Term</option>
+          <option>1D — Daily</option>
+          <option>1W — Weekly</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>ANALYSIS DEPTH</label>
+        <select class="inp">
+          <option>Comprehensive (Full Report)</option>
+          <option>Quick Scan (Summary Only)</option>
+          <option>Trade Setup Only</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;" onclick="runAnalysis()">
+        🧠 Generate AI Analysis
+      </button>
+
+      <div class="ai-output" id="analysis-output">
+        <div id="analysis-content"></div>
+        <div style="margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--muted);">Confidence Score</span>
+            <span style="font-size:12px;font-weight:700;" id="conf-pct">—</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="conf-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:16px;font-size:13px;" onclick="copyAnalysis()">📋 Copy Report</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNALS -->
+<section id="signals">
+  <div class="signals-inner">
+    <div class="signals-header">
+      <div class="section-label">Signal Engine</div>
+      <h2 class="section-title">Real-Time <span class="grad-text">Trading Signals</span></h2>
+      <p style="color:var(--muted);margin-top:16px;max-width:520px;margin-left:auto;margin-right:auto;">AI-generated BUY, SELL, and HOLD signals with precise levels, confidence scoring, and risk assessment updated continuously.</p>
+    </div>
+    <div class="signals-grid" id="signals-grid"></div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="portfolio-inner">
+    <div class="portfolio-header">
+      <div class="section-label">Portfolio Intelligence</div>
+      <h2 class="section-title">Your Portfolio, <span class="grad-text">AI-Enhanced</span></h2>
+    </div>
+    <div class="portfolio-grid">
+      <div class="port-card">
+        <div class="port-title">Total Portfolio Value</div>
+        <div class="port-val" id="port-val">$0</div>
+        <div class="port-change bull" id="port-chg">Loading...</div>
+        <div class="ai-reco">
+          <div class="ai-reco-title">🧠 AI Recommendation</div>
+          <div class="ai-reco-text" id="ai-reco-text">Analyzing portfolio composition and market conditions...</div>
+        </div>
+      </div>
+      <div class="port-card">
+        <div class="port-title">Asset Allocation</div>
+        <div class="alloc-bars" id="alloc-bars"></div>
+      </div>
+      <div class="port-card">
+        <div class="port-title">Risk Exposure</div>
+        <div id="risk-bars"></div>
+      </div>
+      <div class="port-card">
+        <div class="port-title">Sector Allocation</div>
+        <div id="sector-bars"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="news-inner">
+    <div class="news-header">
+      <div class="section-label">News Intelligence</div>
+      <h2 class="section-title">Market News & <span class="grad-text">Event Analysis</span></h2>
+    </div>
+    <div class="news-grid">
+      <div class="news-feed" id="news-feed"></div>
+      <div>
+        <div class="econ-cal">
+          <div class="cal-title">📅 Economic Calendar</div>
+          <div id="econ-cal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <div class="section-label">Subscription Plans</div>
+      <h2 class="section-title">Choose Your <span class="grad-text">Intelligence Level</span></h2>
+      <p style="color:var(--muted);margin-top:16px;">Start free, scale as you grow. No hidden fees.</p>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-desc">Get started with essential market intelligence tools at no cost.</div>
+        <ul class="plan-features">
+          <li>5 AI analyses per day</li>
+          <li>Basic signal access</li>
+          <li>News feed (delayed)</li>
+          <li class="off">Real-time signals</li>
+          <li class="off">Portfolio intelligence</li>
+          <li class="off">Strategy backtesting</li>
+          <li class="off">API access</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;padding:13px;" onclick="openModal('signup')">Start Free</button>
+      </div>
+      <div class="plan-card featured">
+        <div class="popular-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$49<span>/mo</span></div>
+        <div class="plan-desc">Full platform access for serious traders who want every edge.</div>
+        <ul class="plan-features">
+          <li>Unlimited AI analyses</li>
+          <li>Real-time signals (all pairs)</li>
+          <li>Live news & sentiment</li>
+          <li>Portfolio intelligence</li>
+          <li>Strategy backtesting</li>
+          <li>Custom watchlists</li>
+          <li class="off">API access</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="openModal('signup')">Start Pro Trial</button>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Institutional</div>
+        <div class="plan-price">$199<span>/mo</span></div>
+        <div class="plan-desc">Enterprise-grade access with API, advanced models, and priority support.</div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Full API access</li>
+          <li>Advanced quant models</li>
+          <li>Multi-account management</li>
+          <li>White-label reports</li>
+          <li>Dedicated support</li>
+          <li>Custom integrations</li>
+        </ul>
+        <button class="btn btn-blue" style="width:100%;padding:13px;" onclick="openModal('signup')">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">XtAC Trades</div>
+      <div class="footer-tagline">Institutional-grade AI trading intelligence for the modern trader. Precision decisions, at scale.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Platform</div>
+      <ul class="footer-links">
+        <li><a onclick="scrollTo('analyzer')">AI Analyst</a></li>
+        <li><a onclick="scrollTo('signals')">Signals</a></li>
+        <li><a onclick="scrollTo('portfolio')">Portfolio</a></li>
+        <li><a onclick="scrollTo('news')">News</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a>About</a></li>
+        <li><a>Careers</a></li>
+        <li><a>Blog</a></li>
+        <li><a>Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <ul class="footer-links">
+        <li><a>Terms of Service</a></li>
+        <li><a>Privacy Policy</a></li>
+        <li><a>Risk Disclosure</a></li>
+        <li><a>Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 XtAC Trades. All rights reserved.</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--emerald);">● Systems Operational</span>
+  </div>
+  <div class="footer-disclaimer">
+    ⚠️ Risk Disclaimer: Trading financial instruments involves significant risk and is not suitable for all investors. Past performance does not guarantee future results. XtAC Trades provides information and analysis tools only; nothing herein constitutes financial advice. Always consult a qualified financial advisor before making investment decisions.
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-logo">XtAC Trades</div>
+    <div class="modal-sub">Institutional-grade market intelligence</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Log In</div>
+      <div class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</div>
+    </div>
+
+    <button class="social-btn" onclick="socialAuth()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="divider">or continue with email</div>
+
+    <div class="input-group">
+      <label>EMAIL ADDRESS</label>
+      <input class="inp" type="email" placeholder="you@example.com" id="auth-email"/>
+    </div>
+    <div class="input-group">
+      <label>PASSWORD</label>
+      <input class="inp" type="password" placeholder="••••••••" id="auth-pass"/>
+    </div>
+    <div id="signup-extras" style="display:none;">
+      <div class="input-group">
+        <label>CONFIRM PASSWORD</label>
+        <input class="inp" type="password" placeholder="••••••••"/>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;margin-top:8px;" id="auth-submit-btn" onclick="submitAuth()">
+      Log In
+    </button>
+
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted);">
+      <a style="color:var(--emerald);cursor:pointer;">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<button class="chat-fab" onclick="toggleChat()" title="AI Trading Assistant">🤖</button>
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-avatar">🧠</div>
+    <div>
+      <div class="chat-name">XtAC AI Analyst</div>
+      <div class="chat-status">● Online — Monitoring 47 markets</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-bubble bot">👋 Hello! I'm your XtAC AI Analyst. Ask me anything about market analysis, trade setups, or risk management.</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-input" placeholder="Ask about any market..." onkeydown="chatEnter(event)"/>
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const TICKERS = [
+  {sym:'EUR/USD',price:'1.0847',chg:'+0.12%',up:true},
+  {sym:'BTC/USD',price:'67,234',chg:'+2.41%',up:true},
+  {sym:'GBP/USD',price:'1.2651',chg:'-0.08%',up:false},
+  {sym:'GOLD',price:'2,341',chg:'+0.67%',up:true},
+  {sym:'S&P 500',price:'5,192',chg:'+0.34%',up:true},
+  {sym:'ETH/USD',price:'3,487',chg:'+1.82%',up:true},
+  {sym:'USD/JPY',price:'154.23',chg:'-0.21%',up:false},
+  {sym:'OIL/WTI',price:'82.40',chg:'+0.90%',up:true},
+  {sym:'NASDAQ',price:'16,421',chg:'+0.55%',up:true},
+  {sym:'SOL/USD',price:'178.42',chg:'+3.12%',up:true},
+  {sym:'SILVER',price:'28.72',chg:'+0.44%',up:true},
+  {sym:'DAX',price:'18,203',chg:'-0.15%',up:false},
+];
+
+const ASSETS = {
+  Forex:['EUR/USD','GBP/USD','USD/JPY','AUD/USD','USD/CHF','EUR/GBP','NZD/USD','USD/CAD'],
+  Crypto:['BTC/USD','ETH/USD','SOL/USD','BNB/USD','XRP/USD','AVAX/USD','DOT/USD','ADA/USD'],
+  Stocks:['AAPL','TSLA','NVDA','MSFT','AMZN','GOOGL','META','NFLX'],
+  Commodities:['GOLD','SILVER','OIL/WTI','NATURAL GAS','COPPER','PLATINUM','WHEAT','CORN'],
+  Indices:['S&P 500','NASDAQ','DOW JONES','DAX','FTSE 100','NIKKEI','CAC 40','ASX 200'],
+};
+
+const SIGNALS_DATA = [
+  {pair:'EUR/USD',type:'BUY',entry:'1.0832',sl:'1.0798',tp:'1.0901',conf:82,risk:'Medium',time:'4m ago'},
+  {pair:'BTC/USD',type:'BUY',entry:'66,840',sl:'65,200',tp:'69,500',conf:74,risk:'High',time:'12m ago'},
+  {pair:'GBP/USD',type:'SELL',entry:'1.2661',sl:'1.2700',tp:'1.2590',conf:68,risk:'Medium',time:'31m ago'},
+  {pair:'GOLD',type:'BUY',entry:'2,328',sl:'2,308',tp:'2,372',conf:91,risk:'Low',time:'1h ago'},
+  {pair:'USD/JPY',type:'SELL',entry:'154.45',sl:'155.10',tp:'153.20',conf:77,risk:'Medium',time:'2h ago'},
+  {pair:'S&P 500',type:'HOLD',entry:'—',sl:'—',tp:'—',conf:55,risk:'High',time:'3h ago'},
+];
+
+const NEWS_DATA = [
+  {src:'Reuters',title:'Federal Reserve signals potential rate cut in Q3 2025 amid cooling inflation data',time:'14m ago',impact:'high',sent:'neg'},
+  {src:'Bloomberg',title:'Bitcoin surges past $67K as institutional demand accelerates before halving anniversary',time:'28m ago',impact:'high',sent:'pos'},
+  {src:'FT',title:'ECB President Lagarde hints at further monetary easing following eurozone growth slowdown',time:'52m ago',impact:'high',sent:'neg'},
+  {src:'MarketWatch',title:'Gold hits 3-week high on safe-haven flows amid Middle East geopolitical tensions',time:'1h ago',impact:'med',sent:'pos'},
+  {src:'CNBC',title:'NVIDIA announces record Q1 earnings, shares rise 7% in after-hours trading',time:'2h ago',impact:'med',sent:'pos'},
+  {src:'WSJ',title:'Oil prices retreat as OPEC+ debates extending supply cut agreement into late 2025',time:'3h ago',impact:'med',sent:'neu'},
+];
+
+const ECON_DATA = [
+  {time:'08:30',event:'US CPI (MoM)',country:'🇺🇸 United States',impact:'high'},
+  {time:'10:00',event:'ECB Rate Decision',country:'🇪🇺 Eurozone',impact:'high'},
+  {time:'12:30',event:'UK GDP Preliminary',country:'🇬🇧 United Kingdom',impact:'med'},
+  {time:'14:00',event:'Fed Chair Speech',country:'🇺🇸 United States',impact:'high'},
+  {time:'16:30',event:'US Crude Oil Inventories',country:'🇺🇸 United States',impact:'med'},
+];
+
+const HEATMAP_DATA = [
+  {sym:'BTC',pct:'+2.4%',hot:true,val:84},
+  {sym:'SOL',pct:'+3.1%',hot:true,val:90},
+  {sym:'ETH',pct:'+1.8%',hot:true,val:72},
+  {sym:'GOLD',pct:'+0.7%',hot:true,val:58},
+  {sym:'NVDA',pct:'+1.2%',hot:true,val:64},
+  {sym:'S&P',pct:'+0.3%',hot:true,val:48},
+  {sym:'EUR',pct:'+0.1%',hot:true,val:42},
+  {sym:'OIL',pct:'-0.5%',hot:false,val:35},
+  {sym:'JPY',pct:'-0.2%',hot:false,val:38},
+  {sym:'GBP',pct:'-0.1%',hot:false,val:40},
+  {sym:'SILVER',pct:'+0.4%',hot:true,val:52},
+  {sym:'DAX',pct:'-0.2%',hot:false,val:37},
+  {sym:'XRP',pct:'+0.9%',hot:true,val:60},
+  {sym:'ADA',pct:'-1.2%',hot:false,val:28},
+];
+
+const AI_RESPONSES = {
+  default: [
+    "Based on current price action, EUR/USD is showing bullish momentum with RSI divergence on the 4H chart. Key resistance at 1.0880 — a clean break could target 1.0950.",
+    "BTC is consolidating above the 20-day EMA. On-chain data shows accumulation by large wallets. Watching the $68,500 breakout level for confirmation of the next leg up.",
+    "Gold is in a strong uptrend with all major MAs pointing higher. The $2,350 level is a critical pivot — buyers are defending this zone aggressively.",
+    "USD/JPY bearish divergence on the daily. If the BOJ signals hawkish intent at their next meeting, we could see a sharp reversal toward 151.50.",
+    "The S&P 500 remains in a consolidation pattern between 5,150–5,220. Earnings season will be the catalyst — watch for a breakout or breakdown this week.",
+  ],
+  analysis: (asset, tf) => `
+    <div class="out-row"><span class="out-key">ASSET</span><span class="out-val" style="color:var(--white)">${asset}</span></div>
+    <div class="out-row"><span class="out-key">MARKET STRUCTURE</span><span class="out-val bull">Bullish</span></div>
+    <div class="out-row"><span class="out-key">TREND (${tf})</span><span class="out-val bull">Uptrend — Higher Highs</span></div>
+    <div class="out-row"><span class="out-key">SUPPORT 1</span><span class="out-val">1.0798</span></div>
+    <div class="out-row"><span class="out-key">SUPPORT 2</span><span class="out-val">1.0752</span></div>
+    <div class="out-row"><span class="out-key">RESISTANCE 1</span><span class="out-val">1.0880</span></div>
+    <div class="out-row"><span class="out-key">RESISTANCE 2</span><span class="out-val">1.0950</span></div>
+    <div class="out-row"><span class="out-key">ENTRY</span><span class="out-val bull">1.0832</span></div>
+    <div class="out-row"><span class="out-key">STOP LOSS</span><span class="out-val bear">1.0798</span></div>
+    <div class="out-row"><span class="out-key">TAKE PROFIT</span><span class="out-val bull">1.0920</span></div>
+    <div class="out-row"><span class="out-key">RISK/REWARD</span><span class="out-val">1 : 2.6</span></div>
+    <div class="out-row"><span class="out-key">RECOMMENDATION</span><span class="out-val bull">BUY</span></div>
+  `
+};
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 500);
+  }, 1800);
+
+  buildTickers();
+  buildSignals();
+  buildPortfolio();
+  buildNews();
+  buildHeatmap();
+  animateCounters();
+  buildEconCal();
+  initCanvas();
+});
+
+// ── CANVAS PARTICLES ──
+function initCanvas() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 0.5,
+      color: Math.random() > 0.5 ? '#10B981' : '#3B82F6',
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    });
+
+    // Draw connections
+    particles.forEach((a, i) => {
+      particles.slice(i+1).forEach(b => {
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(16,185,129,${0.15 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+// ── TICKERS ──
+function buildTickers() {
+  const doubled = [...TICKERS, ...TICKERS];
+  const html = doubled.map(t => `
+    <div class="ticker-item">
+      <span class="ticker-sym">${t.sym}</span>
+      <span class="ticker-price">${t.price}</span>
+      <span class="${t.up ? 'ticker-up' : 'ticker-down'}">${t.chg}</span>
+    </div>
+  `).join('');
+  document.getElementById('hero-ticker').innerHTML = html;
+  const topTicker = document.getElementById('top-ticker');
+  if (topTicker) topTicker.innerHTML = html;
+}
+
+// ── SIGNALS ──
+function buildSignals() {
+  const grid = document.getElementById('signals-grid');
+  grid.innerHTML = SIGNALS_DATA.map(s => {
+    const typeClass = s.type === 'BUY' ? 'sig-buy' : s.type === 'SELL' ? 'sig-sell' : 'sig-hold';
+    const confColor = s.conf >= 80 ? 'var(--emerald)' : s.conf >= 65 ? 'var(--amber)' : 'var(--red)';
+    return `
+      <div class="signal-card">
+        <div class="signal-top">
+          <div class="signal-pair">${s.pair}</div>
+          <div class="signal-type ${typeClass}">${s.type}</div>
+        </div>
+        <div class="signal-levels">
+          <div class="level-box">
+            <div class="level-label">Entry</div>
+            <div class="level-val">${s.entry}</div>
+          </div>
+          <div class="level-box">
+            <div class="level-label">Stop Loss</div>
+            <div class="level-val" style="color:var(--red)">${s.sl}</div>
+          </div>
+          <div class="level-box">
+            <div class="level-label">Take Profit</div>
+            <div class="level-val" style="color:var(--emerald)">${s.tp}</div>
+          </div>
+        </div>
+        <div class="signal-meta">
+          <div class="conf-wrap">
+            <span class="conf-label">Confidence</span>
+            <span class="conf-val" style="color:${confColor}">${s.conf}%</span>
+          </div>
+          <div style="font-size:11px;color:${s.risk==='High'?'var(--red)':s.risk==='Medium'?'var(--amber)':'var(--emerald)'}">
+            ● ${s.risk} Risk
+          </div>
+          <div class="time-ago">${s.time}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── PORTFOLIO ──
+function buildPortfolio() {
+  // Animate portfolio value
+  animateValue('port-val', 0, 128547, 1800, v => '$'+v.toLocaleString());
+  setTimeout(() => {
+    document.getElementById('port-chg').textContent = '+$3,241.50 (+2.59%) today';
+    document.getElementById('ai-reco-text').textContent = 'Portfolio is 68% correlated with equity markets. Consider adding 8-12% gold allocation to reduce drawdown risk. Current Sharpe ratio: 1.42 — above benchmark.';
+  }, 1800);
+
+  const alloc = [
+    {name:'Crypto',pct:35,color:'#10B981'},
+    {name:'Equities',pct:28,color:'#3B82F6'},
+    {name:'Forex',pct:20,color:'#8B5CF6'},
+    {name:'Commodities',pct:12,color:'#F59E0B'},
+    {name:'Cash',pct:5,color:'#94A3B8'},
+  ];
+
+  document.getElementById('alloc-bars').innerHTML = alloc.map(a => `
+    <div class="alloc-row">
+      <div class="alloc-name" style="font-size:13px;color:var(--muted)">${a.name}</div>
+      <div class="alloc-bar-wrap">
+        <div class="alloc-bar-fill" style="width:${a.pct}%;background:${a.color}"></div>
+      </div>
+      <div class="alloc-pct">${a.pct}%</div>
+    </div>
+  `).join('');
+
+  const risk = [
+    {name:'Low Risk',pct:22,color:'#10B981'},
+    {name:'Med Risk',pct:48,color:'#F59E0B'},
+    {name:'High Risk',pct:30,color:'#EF4444'},
+  ];
+  document.getElementById('risk-bars').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+      ${risk.map(r => `
+        <div class="alloc-row">
+          <div class="alloc-name" style="font-size:12px;color:var(--muted);width:90px">${r.name}</div>
+          <div class="alloc-bar-wrap"><div class="alloc-bar-fill" style="width:${r.pct}%;background:${r.color}"></div></div>
+          <div class="alloc-pct">${r.pct}%</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const sectors = [
+    {name:'Technology',pct:42,color:'#3B82F6'},
+    {name:'Finance',pct:18,color:'#10B981'},
+    {name:'Energy',pct:15,color:'#F59E0B'},
+    {name:'Healthcare',pct:12,color:'#8B5CF6'},
+    {name:'Consumer',pct:13,color:'#EC4899'},
+  ];
+  document.getElementById('sector-bars').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+      ${sectors.map(s => `
+        <div class="alloc-row">
+          <div class="alloc-name" style="font-size:12px;color:var(--muted);width:90px">${s.name}</div>
+          <div class="alloc-bar-wrap"><div class="alloc-bar-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+          <div class="alloc-pct">${s.pct}%</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ── NEWS ──
+function buildNews() {
+  document.getElementById('news-feed').innerHTML = NEWS_DATA.map(n => `
+    <div class="news-item">
+      <div class="news-impact impact-${n.impact}"></div>
+      <div class="news-body">
+        <div class="news-source">${n.src}</div>
+        <div class="news-title-text">${n.title}</div>
+        <div class="news-meta-row">
+          <span class="news-time">${n.time}</span>
+          <span class="news-sentiment sent-${n.sent==='pos'?'pos':n.sent==='neg'?'neg':'neu'}">
+            ${n.sent==='pos'?'Bullish':n.sent==='neg'?'Bearish':'Neutral'}
+          </span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ECON CAL ──
+function buildEconCal() {
+  document.getElementById('econ-cal').innerHTML = ECON_DATA.map(e => `
+    <div class="cal-item">
+      <div class="cal-time">${e.time}</div>
+      <div class="cal-info">
+        <div class="cal-event">${e.event}</div>
+        <div class="cal-country">${e.country}</div>
+      </div>
+      <div class="cal-impact" style="color:${e.impact==='high'?'var(--red)':'var(--amber)'}">
+        ${e.impact==='high'?'●●●':'●●○'}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── HEATMAP ──
+function buildHeatmap() {
+  document.getElementById('heatmap').innerHTML = HEATMAP_DATA.map(h => {
+    const intensity = h.val / 100;
+    const bg = h.hot
+      ? `rgba(16,185,129,${0.1 + intensity * 0.5})`
+      : `rgba(239,68,68,${0.1 + (1-intensity) * 0.4})`;
+    const col = h.hot ? 'var(--emerald)' : 'var(--red)';
+    return `
+      <div class="hmap-cell" style="background:${bg}">
+        <div class="hmap-sym" style="color:var(--white)">${h.sym}</div>
+        <div class="hmap-pct" style="color:${col}">${h.pct}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── COUNTER ANIMATIONS ──
+function animateCounters() {
+  setTimeout(() => animateValue('cnt-signals', 0, 1247, 1600, v => v.toLocaleString()), 500);
+  setTimeout(() => animateValue('cnt-acc', 0, 78, 1600, v => v+'%'), 600);
+  setTimeout(() => animateValue('cnt-users', 0, 23400, 1800, v => v.toLocaleString()), 700);
+}
+
+function animateValue(id, from, to, dur, fmt) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * ease));
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── ASSET TABS ──
+function setTab(btn, category) {
+  document.querySelectorAll('#asset-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const sel = document.getElementById('asset-select');
+  sel.innerHTML = ASSETS[category].map(a => `<option>${a}</option>`).join('');
+  document.getElementById('analysis-output').classList.remove('visible');
+}
+
+// ── ANALYSIS ──
+let analysisRunning = false;
+async function runAnalysis() {
+  if (analysisRunning) return;
+  analysisRunning = true;
+
+  const asset = document.getElementById('asset-select').value;
+  const tf = document.getElementById('tf-select').value.split('—')[0].trim();
+  const out = document.getElementById('analysis-output');
+  const content = document.getElementById('analysis-content');
+  const confFill = document.getElementById('conf-fill');
+  const confPct = document.getElementById('conf-pct');
+
+  content.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted)">
+    <div class="typing-indicator" style="justify-content:center"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    <div style="margin-top:10px;font-size:13px">Analyzing ${asset}...</div>
+  </div>`;
+  confFill.style.width = '0%';
+  confPct.textContent = '—';
+  out.classList.add('visible');
+
+  // Call Claude API
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `You are an institutional trading analyst at a top hedge fund. Provide a professional market analysis for ${asset} on the ${tf} timeframe. 
+
+Return ONLY a JSON object with these exact fields (no markdown, no explanation):
+{
+  "structure": "Bullish|Bearish|Ranging",
+  "trend": "brief description",
+  "support1": "price level",
+  "support2": "price level",
+  "support3": "price level",
+  "resistance1": "price level",
+  "resistance2": "price level",
+  "resistance3": "price level",
+  "entry": "price level",
+  "stopLoss": "price level",
+  "takeProfit": "price level",
+  "riskReward": "1:X.X",
+  "confidence": number between 55 and 95,
+  "sentiment": "Bullish|Bearish|Neutral",
+  "recommendation": "BUY|SELL|HOLD",
+  "summary": "2 sentence professional summary",
+  "bullScenario": "brief bullish scenario",
+  "bearScenario": "brief bearish scenario"
+}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    const structColor = parsed.structure === 'Bullish' ? 'bull' : parsed.structure === 'Bearish' ? 'bear' : 'neut';
+    const recColor = parsed.recommendation === 'BUY' ? 'bull' : parsed.recommendation === 'SELL' ? 'bear' : 'neut';
+
+    content.innerHTML = `
+      <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.12);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:var(--muted);line-height:1.6">${parsed.summary}</div>
+      <div class="out-row"><span class="out-key">ASSET</span><span class="out-val" style="color:var(--white)">${asset}</span></div>
+      <div class="out-row"><span class="out-key">MARKET STRUCTURE</span><span class="out-val ${structColor}">${parsed.structure}</span></div>
+      <div class="out-row"><span class="out-key">TREND</span><span class="out-val" style="font-size:12px;color:var(--muted)">${parsed.trend}</span></div>
+      <div class="out-row"><span class="out-key">SUPPORT 1 / 2 / 3</span><span class="out-val">${parsed.support1} · ${parsed.support2} · ${parsed.support3}</span></div>
+      <div class="out-row"><span class="out-key">RESISTANCE 1 / 2 / 3</span><span class="out-val">${parsed.resistance1} · ${parsed.resistance2} · ${parsed.resistance3}</span></div>
+      <div class="out-row"><span class="out-key">ENTRY</span><span class="out-val bull">${parsed.entry}</span></div>
+      <div class="out-row"><span class="out-key">STOP LOSS</span><span class="out-val bear">${parsed.stopLoss}</span></div>
+      <div class="out-row"><span class="out-key">TAKE PROFIT</span><span class="out-val bull">${parsed.takeProfit}</span></div>
+      <div class="out-row"><span class="out-key">RISK / REWARD</span><span class="out-val">${parsed.riskReward}</span></div>
+      <div class="out-row"><span class="out-key">SENTIMENT</span><span class="out-val ${structColor}">${parsed.sentiment}</span></div>
+      <div class="out-row"><span class="out-key">RECOMMENDATION</span><span class="out-val ${recColor}">▶ ${parsed.recommendation}</span></div>
+      <div style="margin-top:12px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.1);border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:var(--blue);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Alternative Scenarios</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px"><span style="color:var(--emerald)">▲ Bull:</span> ${parsed.bullScenario}</div>
+        <div style="font-size:12px;color:var(--muted)"><span style="color:var(--red)">▼ Bear:</span> ${parsed.bearScenario}</div>
+      </div>
+    `;
+
+    confFill.style.width = parsed.confidence + '%';
+    confPct.textContent = parsed.confidence + '%';
+
+  } catch (err) {
+    // Fallback display
+    content.innerHTML = AI_RESPONSES.analysis(asset, tf);
+    const conf = Math.floor(Math.random() * 25) + 65;
+    confFill.style.width = conf + '%';
+    confPct.textContent = conf + '%';
+  }
+
+  analysisRunning = false;
+}
+
+function copyAnalysis() {
+  navigator.clipboard.writeText(document.getElementById('analysis-content').innerText);
+  showToast('📋 Analysis copied to clipboard');
+}
+
+// ── CHAT ──
+let chatOpen = false;
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+}
+
+function chatEnter(e) { if (e.key === 'Enter') sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML += `<div class="chat-bubble user">${msg}</div>`;
+
+  // Typing
+  const typingId = 'typing-' + Date.now();
+  msgs.innerHTML += `<div class="chat-bubble bot" id="${typingId}"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `You are XtAC AI Analyst, an institutional trading intelligence assistant. Be concise, professional, and specific. Answer in 2-4 sentences maximum. User asks: ${msg}`
+        }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    document.getElementById(typingId).textContent = text;
+  } catch {
+    const fallback = AI_RESPONSES.default[Math.floor(Math.random() * AI_RESPONSES.default.length)];
+    document.getElementById(typingId).textContent = fallback;
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── AUTH MODAL ──
+function openModal(type) {
+  document.getElementById('auth-modal').classList.add('open');
+  switchAuthTab(type);
+}
+function closeModal() { document.getElementById('auth-modal').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id === 'auth-modal') closeModal(); }
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tab-login').classList.toggle('active', isLogin);
+  document.getElementById('tab-signup').classList.toggle('active', !isLogin);
+  document.getElementById('signup-extras').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('auth-submit-btn').textContent = isLogin ? 'Log In' : 'Create Account';
+}
+
+function submitAuth() {
+  const email = document.getElementById('auth-email').value;
+  if (!email || !email.includes('@')) { showToast('⚠️ Please enter a valid email'); return; }
+  closeModal();
+  showToast('✓ Welcome to XtAC Trades!');
+}
+
+function socialAuth() {
+  closeModal();
+  showToast('✓ Signed in with Google');
+}
+
+// ── SCROLL ──
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── LIVE PRICE UPDATES ──
+setInterval(() => {
+  const items = document.querySelectorAll('.ticker-item');
+  if (items.length) {
+    const idx = Math.floor(Math.random() * (items.length / 2));
+    const priceEl = items[idx]?.querySelector('.ticker-price');
+    if (priceEl) {
+      priceEl.style.transition = 'color 0.3s';
+      priceEl.style.color = '#10B981';
+      setTimeout(() => priceEl.style.color = '', 500);
+    }
+  }
+}, 3000);
+</script>
+</body>
+</html>
