@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile Node — XtAC Trades</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700&display=swap');
+  :root { --bg-deep: #0B1220; --bg-card: #111827; --emerald: #10B981; --white: #F8FAFC; --muted: #94A3B8; --border: rgba(255,255,255,0.07); }
+  body { background: var(--bg-deep); color: var(--white); font-family: 'Inter', sans-serif; padding: 80px 24px; text-align: center; }
+  .profile-card { background: var(--bg-card); max-width: 450px; margin: 40px auto; padding: 32px; border-radius: 20px; border: 1px solid var(--border); text-align: left; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--emerald); display: block; margin: 0 auto 20px; border: 3px solid rgba(16,185,129,0.3); }
+  .meta-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .label { color: var(--muted); }
+  .val { font-weight: 600; }
+  .btn { display: inline-block; background: var(--emerald); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-top: 20px; }
+</style>
+</head>
+<body>
+  <h2>User Account Node</h2>
+  <div class="profile-card">
+    <div id="avatar-container"><div class="avatar"></div></div>
+    <div class="meta-row"><span class="label">Profile Status</span><span class="val" id="prof-name">Active Trader</span></div>
+    <div class="meta-row"><span class="label">Authenticated Email</span><span class="val" id="prof-email">Guest User</span></div>
+    <div class="meta-row"><span class="label">Account Allocation</span><span class="val" style="color:var(--emerald)">Free Tier</span></div>
+  </div>
+  <a href="index.html" class="btn">Go to Terminal Dashboard</a>
+
+  <script>
+    // Pull logged in configuration details seamlessly from auth interceptor metrics
+    document.addEventListener("DOMContentLoaded", () => {
+      const keys = Object.keys(localStorage);
+      const profileKey = keys.find(k => k.startsWith("xtac_profile_"));
+      if(profileKey) {
+         const profile = JSON.parse(localStorage.getItem(profileKey));
+         document.getElementById('prof-name').textContent = profile.name;
+         document.getElementById('prof-email').textContent = profile.email;
+         if(profile.photo) {
+           document.getElementById('avatar-container').innerHTML = `<img src="${profile.photo}" class="avatar" alt="User Photo">`;
+         }
+      }
+    });
+  </script>
+</body>
+</html>
